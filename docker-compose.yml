@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16.4
+    container_name: auth-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - auth-net
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: app.dockerfile
+    container_name: auth-service
+    depends_on:
+      - postgres
+    environment:
+      TZ: UTC 
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      ACCESS_TOKEN_TTL: ${ACCESS_TOKEN_TTL}
+      WEBHOOK_URL: ${WEBHOOK_URL}
+    ports:
+      - "8080:8080"
+    networks:
+      - auth-net
+
+volumes:
+  postgres_data:
+
+networks:
+  auth-net:

@@ -1,0 +1,138 @@
+definitions:
+  models.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  models.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  models.UserResponse:
+    properties:
+      guid:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Документация Auth Service
+  title: Auth Service API
+  version: "1.0"
+paths:
+  /login:
+    get:
+      consumes:
+      - application/json
+      description: Получение access и refresh токенов по guid пользователя
+      parameters:
+      - description: GUID пользователя
+        in: query
+        name: guid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'Успешный ответ" example({"access_token": "eyJhbGciOi...",
+            "refresh_token": "dGhpc2lzYXJlZnJlc2h0b2tlbg=="})'
+          schema:
+            $ref: '#/definitions/models.TokenResponse'
+        "400":
+          description: guid is required
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: Авторизация пользователя
+      tags:
+      - auth
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: Деактивация сессии пользователя по access token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" example("ok")
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Выход пользователя
+      tags:
+      - auth
+  /refresh:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Введите токен в формате: Bearer <access_token>
+        Получение новых access и refresh токенов по refresh token
+      parameters:
+      - description: Refresh token request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'Успешный ответ" example({"access_token": "eyJhbGciOi...",
+            "refresh_token": "dGhpc2lzYXJlZnJlc2h0b2tlbg=="})'
+          schema:
+            $ref: '#/definitions/models.TokenResponse'
+        "400":
+          description: refresh token is required
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Обновление токенов
+      tags:
+      - auth
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Получение GUID пользователя по access token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Успешный ответ" example({"guid": "550e8400-e29b-41d4-a716-446655440000"})'
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Получение информации о пользователе
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: 'Введите токен в формате: Bearer <access_token>'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
